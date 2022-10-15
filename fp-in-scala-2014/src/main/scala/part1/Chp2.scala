@@ -1,7 +1,6 @@
 package part1
 
 import scala.annotation.tailrec
-import scala.collection.mutable
 
 object Chp2 {
 
@@ -14,17 +13,19 @@ object Chp2 {
       case _ => fib(n - 1) + fib(n - 2)
   }
 
-//  def fibTR(n: Int): Int = {
-//
-//    @tailrec
-//    def go(n: Int, acc: Int): Int = n match {
-//      case 1 => 0
-//      case 2 => 1
-//      case _ => acc + go(n - 1, 0)
-//    }
-//
-//    go(n, 0)
-//  }
+  def fibR(n: Int): Int = {
+    @tailrec
+    def helper(last: Int, current: Int, iteration: Int): Int = {
+      if (iteration >= n) current
+      else helper(current, last + current, iteration + 1)
+    }
+
+    n match {
+      case 1 => 0
+      case 2 => 1
+      case _ => helper(1, 1, 3)
+    }
+  }
 
   def fibI(n: Int): Int = {
     n match {
@@ -45,19 +46,46 @@ object Chp2 {
     }
   }
 
+  def isSorted[A](as: List[A], ordered: (A, A) => Boolean): Boolean = {
+    @tailrec
+    def helper(head: A, remaining: List[A]): Boolean = {
+      remaining match {
+        case Nil => true
+        case h::t if ordered(head, h) => helper(h, t)
+        case _ => false
+      }
+    }
 
-//  def fibMemoized(n: Int): Int = {
-//    val map = mutable.Map(1 -> 0, 2 -> 1)
-//
-//    def go(n: Int): Int = {
-//      map.getOrElse(n, {
-//        val result = go(n - 1) + go(n - 2)
-//        map.addOne(n -> result)
-//        result
-//      })
-//    }
-//
-//    go(n)
-//  }
+    as match {
+      case h::t => helper(h, t)
+      case _ => true
+    }
+  }
+
+  def isSortedArray[A](as: Array[A], ordered: (A, A) => Boolean): Boolean = {
+    @tailrec
+    def helper(i: Int): Boolean = {
+      if (i >= as.length - 1) true
+      else if (!ordered(as(i), as(i + 1))) false
+      else helper(i + 1)
+    }
+
+    if (as.length < 2) true
+    else helper(0)
+  }
+
+  def curry[A,B,C](f: (A, B) => C): A => B => C = {
+    (a: A) => f(a, _)
+  }
+
+  def uncurry[A,B,C](f: A => B => C): (A, B) => C = {
+    (a: A, b: B) => f(a)(b)
+  }
+
+  def compose[A,B,C](f: B => C, g: A => B): A => C = {
+    (a: A) => f(g(a))
+  }
+
+
 
 }
