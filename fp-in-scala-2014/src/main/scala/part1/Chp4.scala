@@ -144,6 +144,7 @@ object Chp4 {
     }
 
     def traverse[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = {
+      @tailrec
       def helper(ls: List[A], acc: List[B]): Either[E, List[B]] = {
         ls match {
           case h::t =>
@@ -158,5 +159,12 @@ object Chp4 {
       helper(as, Nil)
     }
   }
+
+  /*
+  Exercise 4.8
+  map2 is only able to report one error.
+  To report both errors, the left hand side could contain a List[E].
+  You could conceive a datatype that aggregates errors, valid results, etc.
+   */
 
 }
