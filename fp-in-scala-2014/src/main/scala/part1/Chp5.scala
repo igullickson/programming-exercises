@@ -101,6 +101,22 @@ object Chp5 {
     def flatMap[AA >: A](f: A => Stream[AA]): Stream[AA] = {
       foldRight(Stream.empty[AA])((a, b) => f(a).foldRight(b)((c,d) => Stream.cons(c, d)))
     }
+
+    def mapUnfold[B](f: A => B): Stream[B] = unfold(this) {
+      case Cons(h, t) => Some((f(h()), t()))
+      case Empty => None
+    }
+
+    def takeUnfold(n: Int): Stream[A] = unfold((this, 0)) {
+      case (_, i) if i == n => None
+      case (Empty, _) => None
+      case (Cons(h, t), i) => Some((h(), (t(), i + 1)))
+    }
+
+    def takeWhileUnfold(p: A => Boolean): Stream[A] = {
+      Stream.empty[A] // TODO
+    }
+
   }
 
   case object Empty extends Stream[Nothing]
@@ -117,5 +133,36 @@ object Chp5 {
     def apply[A](as: A*): Stream[A] =
       if (as.isEmpty) empty else cons(as.head, apply(as.tail: _ *))
   }
+
+  def constant[A](a: A): Stream[A] = Stream.cons(a, constant(a))
+
+  def from(n: Int): Stream[Int] = Stream.cons(n, from(n + 1))
+
+  def fibs(): Stream[Int] = {
+    def helper(x: Int, y: Int): Stream[Int] = Stream.cons(x + y, helper(y, x + y))
+    Stream.cons(0, Stream.cons(1, helper(0, 1)))
+  }
+
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = {
+    def go(s: S): Stream[A] = {
+      f(s) match {
+        case Some((a, next)) => Stream.cons(a, go(next))
+        case None => Stream.empty[A]
+      }
+    }
+
+    go(z)
+  }
+
+  def fibsUnfold(): Stream[Int] = {
+    val f = (t: (Int, Int)) => Some((t._1 + t._2, (t._2, t._1 + t._2)))
+    Stream.cons(0, Stream.cons(1, unfold((0,1))(f)))
+  }
+
+  def fromUnfold(n: Int): Stream[Int] = unfold(n)((x: Int) => Some((x, x + 1)))
+
+  def constantUnfold[A](a: A): Stream[A] = unfold(a)((a: A) => Some((a, a)))
+
+  def onesUnfold(): Stream[Int] = unfold(1)(_ => Some((1, 1)))
 
 }
