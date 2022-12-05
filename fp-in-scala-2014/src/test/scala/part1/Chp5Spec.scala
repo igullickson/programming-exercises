@@ -125,7 +125,7 @@ class Chp5Spec extends AnyFlatSpec with should.Matchers {
 
   "onesUnfold" should "generate infinite stream of 1s" in {
     onesUnfold().take(1).toList shouldBe List(1)
-    onesUnfold().take(5).toList shouldBe List(1,1,1,1,1)
+    onesUnfold().take(5).toList shouldBe List(1, 1, 1, 1, 1)
   }
 
   "mapUnfold" should "apply function to each element in stream" in {
@@ -142,6 +142,37 @@ class Chp5Spec extends AnyFlatSpec with should.Matchers {
     Stream(1, 2, 3).takeUnfold(3).toList shouldBe Stream(1, 2, 3).toList
     Stream(1, 2, 3).takeUnfold(2).toList shouldBe Stream(1, 2).toList
     Stream(1, 2).takeUnfold(3).toList shouldBe Stream(1, 2).toList
+  }
+
+  "takeWhileUnfold" should "return starting elements that match given predicate" in {
+    val p = (i: Int) => i < 5
+    Stream.empty.takeWhileUnfold(p).toList shouldBe Stream.empty.toList
+    Stream(1).takeWhileUnfold(p).toList shouldBe Stream(1).toList
+    Stream(1, 2, 3).takeWhileUnfold(p).toList shouldBe Stream(1, 2, 3).toList
+    Stream(1, 2, 5, 6).takeWhileUnfold(p).toList shouldBe Stream(1, 2).toList
+    Stream(5).takeWhileUnfold(p).toList shouldBe Stream.empty.toList
+    Stream(1, 2, 5, 6, 1).takeWhileUnfold(p).toList shouldBe Stream(1, 2).toList
+  }
+
+  "zipWith" should "zip two streams with a function while both have elements" in {
+    val f = (a: Int, b: Int) => a + b
+    Stream.empty.zipWithUnfold(Stream.empty)(f).toList shouldBe Nil
+    Stream.empty.zipWithUnfold(Stream(1))(f).toList shouldBe Nil
+    Stream(1).zipWithUnfold(Stream.empty)(f).toList shouldBe Nil
+    Stream(1).zipWithUnfold(Stream(2))(f).toList shouldBe List(3)
+    Stream(1, 2).zipWithUnfold(Stream(2))(f).toList shouldBe List(3)
+    Stream(1).zipWithUnfold(Stream(2, 3))(f).toList shouldBe List(3)
+    Stream(1, 2, 3).zipWithUnfold(Stream(2, 3, 4))(f).toList shouldBe List(3, 5, 7)
+  }
+
+  "zipAll" should "zip two streams with a function while either has elements" in {
+    Stream.empty.zipAll(Stream.empty).toList shouldBe List()
+    Stream.empty.zipAll(Stream(1)).toList shouldBe List((None, Some(1)))
+    Stream(1).zipAll(Stream.empty).toList shouldBe List((Some(1), None))
+    Stream(1).zipAll(Stream(2)).toList shouldBe List((Some(1), Some(2)))
+    Stream(1, 2).zipAll(Stream(2, 3)).toList shouldBe List((Some(1), Some(2)), (Some(2), Some(3)))
+    Stream(1, 2).zipAll(Stream(2)).toList shouldBe List((Some(1), Some(2)), (Some(2), None))
+    Stream(1).zipAll(Stream(2, 3)).toList shouldBe List((Some(1), Some(2)), (None, Some(3)))
   }
 
 }
